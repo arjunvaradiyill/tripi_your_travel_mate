@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useTheme } from '@/app/context/ThemeContext';
+import { useTheme } from '@/context/ThemeContext';
 
 export default function AdminLayout({
   children,

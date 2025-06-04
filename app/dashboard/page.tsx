@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { FaUser, FaPlane, FaHistory, FaCreditCard, FaCog, FaCalendarAlt, FaMapMarkerAlt, FaEnvelope, FaSignOutAlt } from 'react-icons/fa';
 import Background from '@/components/Background';
-import { useAuth } from '@/app/context/AuthContext';
+import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 
 export default function Dashboard() {

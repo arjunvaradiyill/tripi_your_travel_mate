@@ -11,70 +11,35 @@ if (!JWT_SECRET) {
 
 export async function POST(request: Request) {
   try {
-    const { email, password } = await request.json();
-    console.log('Login attempt for email:', email);
+    const body = await request.json();
+    const { email, password, provider } = body;
 
-    if (!email || !password) {
-      console.log('Missing email or password');
-      return NextResponse.json(
-        { message: 'Email and password are required' },
-        { status: 400 }
-      );
+    // TODO: Implement actual authentication logic here
+    // This is a mock response for now
+    if (provider === 'google') {
+      return NextResponse.json({
+        id: '1',
+        name: 'Google User',
+        email: email
+      });
     }
 
-    const client = await clientPromise;
-    const db = client.db();
-    const user = await db.collection('users').findOne({ email: email.toLowerCase() });
-
-    if (!user) {
-      console.log('User not found:', email);
-      return NextResponse.json(
-        { message: 'Invalid email or password' },
-        { status: 401 }
-      );
+    // Mock email/password login
+    if (email && password) {
+      return NextResponse.json({
+        id: '1',
+        name: 'Test User',
+        email: email
+      });
     }
 
-    console.log('User found, verifying password');
-    const isValidPassword = await bcrypt.compare(password, user.password);
-    if (!isValidPassword) {
-      console.log('Invalid password for user:', email);
-      return NextResponse.json(
-        { message: 'Invalid email or password' },
-        { status: 401 }
-      );
-    }
-
-    console.log('Password verified, creating session');
-    // Create JWT token
-    const newToken = await new SignJWT({})
-      .setProtectedHeader({ alg: 'HS256' })
-      .setSubject(user._id.toString())
-      .setIssuedAt()
-      .setExpirationTime('24h')
-      .sign(new TextEncoder().encode(JWT_SECRET));
-
-    // Set HTTP-only cookie
-    const response = NextResponse.json({
-      user: {
-        id: user._id.toString(),
-        name: user.name,
-        email: user.email
-      }
-    });
-
-    response.cookies.set('token', newToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24 // 24 hours
-    });
-
-    console.log('Login successful for user:', email);
-    return response;
-  } catch (error) {
-    console.error('Login failed:', error);
     return NextResponse.json(
-      { message: 'Internal server error' },
+      { error: 'Invalid credentials' },
+      { status: 401 }
+    );
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'Internal server error' },
       { status: 500 }
     );
   }

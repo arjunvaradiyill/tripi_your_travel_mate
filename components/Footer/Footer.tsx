@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { FaFacebook, FaTwitter, FaInstagram, FaLinkedin, FaPhone, FaEnvelope, FaMapMarkerAlt } from 'react-icons/fa';
-import { useTheme } from '@/app/context/ThemeContext';
+import { useTheme } from '@/context/ThemeContext';
 
 const Footer = () => {
   const { theme } = useTheme();
@@ -116,7 +116,7 @@ const Footer = () => {
         </div>
 
         {/* Bottom Bar */}
-        <div className="border-t border-gray-700 mt-12 pt-8 text-center text-sm">
+        <div className="border-t border-white-700 mt-12 pt-8 text-center text-sm">
           <p>&copy; {currentYear} Tripi. All rights reserved.</p>
         </div>
       </div>

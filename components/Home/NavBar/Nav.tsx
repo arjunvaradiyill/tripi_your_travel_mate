@@ -6,11 +6,11 @@ import { TbAirBalloon } from 'react-icons/tb'
 import Link from 'next/link'
 import { HiBars3BottomRight } from 'react-icons/hi2'
 import { usePathname, useRouter } from 'next/navigation'
-import LoginModal from '@/components/Auth/LoginModal'
-import RegisterModal from '@/components/Auth/RegisterModal'
-import { useAuth } from '@/app/context/AuthContext'
-import { FaUser, FaSignOutAlt } from 'react-icons/fa'
-import { useTheme } from '@/app/context/ThemeContext'
+import LoginModal from '@/components/LoginModal/LoginModal'
+import RegisterModal from '@/components/LoginModal/RegisterModal'
+import { useAuth } from '@/context/AuthContext'
+import { FaUser, FaSignOutAlt, FaHeart, FaMoon, FaSun } from 'react-icons/fa'
+import { useTheme } from '@/context/ThemeContext'
 import { MdLightMode, MdDarkMode } from 'react-icons/md'
 
 interface NavLink {
@@ -29,6 +29,13 @@ const Nav = () => {
   const [mounted, setMounted] = useState(false);
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const [favorites, setFavorites] = useState<number[]>(() => {
+    if (typeof window !== 'undefined') {
+      const savedFavorites = localStorage.getItem('favorites');
+      return savedFavorites ? JSON.parse(savedFavorites) : [];
+    }
+    return [];
+  });
 
   useEffect(() => {
     setMounted(true);
@@ -115,11 +122,16 @@ const Nav = () => {
               {user ? (
                 <div className="flex items-center space-x-4">
                   <Link
-                    href="/dashboard"
+                    href="/profile"
                     className="flex items-center space-x-2 text-white hover:text-white/80 transition-colors duration-150"
                   >
                     <FaUser className="text-lg" />
                     <span>{user.name}</span>
+                    {favorites.length > 0 && (
+                      <span className="bg-emerald-500 text-white text-xs px-2 py-1 rounded-full">
+                        {favorites.length}
+                      </span>
+                    )}
                   </Link>
                   <button
                     onClick={handleLogout}
@@ -181,14 +193,10 @@ const Nav = () => {
             ))}
             {user ? (
               <>
-                <Link
-                  href="/dashboard"
-                  className="flex items-center space-x-2 text-gray-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium"
-                  onClick={() => setIsMenuOpen(false)}
-                >
+                <div className="flex items-center space-x-2 text-gray-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium">
                   <FaUser className="text-lg" />
                   <span>{user.name}</span>
-                </Link>
+                </div>
                 <button
                   onClick={handleLogout}
                   className="flex items-center space-x-2 text-gray-300 hover:text-white block w-full text-left px-3 py-2 rounded-md text-base font-medium"

@@ -1,7 +1,6 @@
 'use client'
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { toast } from 'react-hot-toast';
+import { signIn, signOut, useSession } from 'next-auth/react';
 
 interface User {
   id: string;
@@ -11,120 +10,94 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
-  login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string) => Promise<void>;
+  login: (email: string | null, password: string | null, provider?: string) => Promise<void>;
+  register: (name: string | null, email: string | null, password: string | null, provider?: string) => Promise<void>;
   logout: () => Promise<void>;
-  isLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const { data: session, status } = useSession();
   const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const router = useRouter();
 
   useEffect(() => {
-    checkAuth();
-  }, []);
-
-  const checkAuth = async () => {
-    try {
-      const response = await fetch('/api/auth/check');
-      if (response.ok) {
-        const data = await response.json();
-        setUser(data.user);
-      } else {
-        setUser(null);
-      }
-    } catch (error) {
-      console.error('Auth check failed:', error);
+    if (session?.user) {
+      setUser({
+        id: session.user.id || '',
+        name: session.user.name || '',
+        email: session.user.email || '',
+      });
+    } else {
       setUser(null);
-    } finally {
-      setIsLoading(false);
+    }
+  }, [session]);
+
+  const login = async (email: string | null, password: string | null, provider?: string) => {
+    try {
+      if (provider === 'google') {
+        await signIn('google', { callbackUrl: '/' });
+        return;
+      }
+
+      if (email && password) {
+        const result = await signIn('credentials', {
+          email,
+          password,
+          redirect: false,
+        });
+
+        if (result?.error) {
+          throw new Error(result.error);
+        }
+      }
+    } catch (error) {
+      throw new Error('Invalid email or password');
     }
   };
 
-  const login = async (email: string, password: string) => {
+  const register = async (name: string | null, email: string | null, password: string | null, provider?: string) => {
     try {
-      setIsLoading(true);
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Login failed');
+      if (provider === 'google') {
+        await signIn('google', { callbackUrl: '/' });
+        return;
       }
 
-      setUser(data.user);
-      toast.success('Login successful!');
-      router.push('/dashboard');
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Login failed');
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      if (name && email && password) {
+        const response = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ name, email, password }),
+        });
 
-  const register = async (name: string, email: string, password: string) => {
-    try {
-      setIsLoading(true);
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ name, email, password }),
-      });
+        if (!response.ok) {
+          throw new Error('Registration failed');
+        }
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Registration failed');
+        // After successful registration, sign in the user
+        await signIn('credentials', {
+          email,
+          password,
+          redirect: false,
+        });
       }
-
-      setUser(data.user);
-      toast.success('Registration successful!');
-      router.push('/dashboard');
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Registration failed');
-      throw error;
-    } finally {
-      setIsLoading(false);
+      throw new Error('Registration failed. Please try again.');
     }
   };
 
   const logout = async () => {
     try {
-      setIsLoading(true);
-      const response = await fetch('/api/auth/logout', {
-        method: 'POST',
-      });
-
-      if (!response.ok) {
-        throw new Error('Logout failed');
-      }
-
-      setUser(null);
-      toast.success('Logged out successfully');
-      router.push('/');
+      await signOut({ callbackUrl: '/' });
     } catch (error) {
-      toast.error('Failed to logout');
-      throw error;
-    } finally {
-      setIsLoading(false);
+      throw new Error('Logout failed');
     }
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, isLoading }}>
+    <AuthContext.Provider value={{ user, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );

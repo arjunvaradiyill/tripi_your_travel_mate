@@ -1,12 +1,19 @@
 'use client'
-import { AuthProvider } from '@/context/AuthContext';
-import { Toaster } from 'react-hot-toast';
 
-export function Providers({ children }: { children: React.ReactNode }) {
+import { SessionProvider } from 'next-auth/react'
+import { AuthProvider } from '@/context/AuthContext'
+import { ThemeProvider } from '@/context/ThemeContext'
+import { Toaster } from 'react-hot-toast'
+
+export default function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <AuthProvider>
-      {children}
-      <Toaster position="top-center" />
-    </AuthProvider>
-  );
+    <SessionProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          {children}
+          <Toaster position="top-center" />
+        </AuthProvider>
+      </ThemeProvider>
+    </SessionProvider>
+  )
 } 

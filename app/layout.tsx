@@ -1,10 +1,8 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { AuthProvider } from "@/app/context/AuthContext";
-import { ThemeProvider } from "@/app/context/ThemeContext";
 import Nav from "@/components/Home/NavBar/Nav";
-import Footer from "@/components/Footer/Footer";
+import Providers from "./providers";
 
 // Setup task
 // Customize your font { watch the video }
@@ -25,15 +23,13 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.className} antialiased min-h-screen bg-background text-foreground`}>
-        <AuthProvider>
-          <ThemeProvider>
-            <Nav />
-            <main className="relative">
-              {children}
-            </main>
-            <Footer />
-          </ThemeProvider>
-        </AuthProvider>
+        <Providers>
+          <Nav />
+          <main className="relative">
+            {children}
+          </main>
+          {/* <Footer /> */}
+        </Providers>
       </body>
     </html>
   );
